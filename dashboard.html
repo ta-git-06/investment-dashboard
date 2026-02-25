@@ -9,21 +9,22 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; }
-    .bg-fear-extreme  { background: #3b0a0a; border-left: 4px solid #ef4444; }
-    .bg-fear          { background: #431407; border-left: 4px solid #f97316; }
-    .bg-neutral       { background: #1c1917; border-left: 4px solid #eab308; }
-    .bg-greed         { background: #1a2e05; border-left: 4px solid #84cc16; }
-    .bg-greed-extreme { background: #052e16; border-left: 4px solid #22c55e; }
+    .bg-fear-extreme  { background: #fff1f1; border-left: 4px solid #ef4444; }
+    .bg-fear          { background: #fff7ed; border-left: 4px solid #f97316; }
+    .bg-neutral       { background: #fefce8; border-left: 4px solid #eab308; }
+    .bg-greed         { background: #f0fdf4; border-left: 4px solid #84cc16; }
+    .bg-greed-extreme { background: #dcfce7; border-left: 4px solid #22c55e; }
+    .card { background: #ffffff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05); }
     .chart-wrap { position: relative; height: 220px; }
     .invest-wrap { position: relative; height: 260px; }
   </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen">
+<body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <!-- ヘッダー -->
-  <header class="border-b border-slate-700 px-4 py-4 sticky top-0 bg-slate-900 z-10">
+  <header class="border-b border-slate-200 px-4 py-4 sticky top-0 bg-white z-10 shadow-sm">
     <div class="max-w-5xl mx-auto flex justify-between items-center">
-      <h1 class="text-lg font-bold tracking-tight">📊 投資モニター</h1>
+      <h1 class="text-lg font-bold tracking-tight text-slate-800">📊 投資モニター</h1>
       <span id="lastUpdated" class="text-slate-400 text-xs">読み込み中…</span>
     </div>
   </header>
@@ -38,8 +39,8 @@
     <!-- エラー -->
     <div id="error" class="hidden text-center py-20">
       <div class="text-4xl mb-3">⚠️</div>
-      <p class="text-red-400" id="errorMsg"></p>
-      <p class="text-slate-500 text-sm mt-2">スプレッドシートが「リンクを知っている人は閲覧可能」に設定されているか確認してください。</p>
+      <p class="text-red-500" id="errorMsg"></p>
+      <p class="text-slate-400 text-sm mt-2">スプレッドシートが「リンクを知っている人は閲覧可能」に設定されているか確認してください。</p>
     </div>
 
     <!-- メインコンテンツ -->
@@ -47,37 +48,37 @@
 
       <!-- サマリーカード -->
       <section>
-        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">最新データ</p>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mb-3">最新データ</p>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 
           <!-- F&G カード -->
-          <div id="card-fg" class="rounded-xl p-4 bg-neutral">
-            <p class="text-xs text-slate-400 mb-1">Fear &amp; Greed</p>
+          <div id="card-fg" class="rounded-2xl p-4 bg-neutral">
+            <p class="text-xs text-slate-500 mb-1">Fear &amp; Greed</p>
             <p id="fg-score" class="text-4xl font-black">—</p>
-            <p id="fg-label" class="text-xs mt-1 text-slate-300">—</p>
-            <p id="fg-change" class="text-xs text-slate-500 mt-1">前日比 —</p>
+            <p id="fg-label" class="text-xs mt-1 text-slate-600">—</p>
+            <p id="fg-change" class="text-xs text-slate-400 mt-1">前日比 —</p>
           </div>
 
           <!-- SKEW カード -->
-          <div class="bg-slate-800 rounded-xl p-4">
+          <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">SKEW Index</p>
-            <p id="skew-score" class="text-4xl font-black text-cyan-400">—</p>
-            <p id="skew-label" class="text-xs mt-1 text-slate-300">—</p>
+            <p id="skew-score" class="text-4xl font-black text-cyan-500">—</p>
+            <p id="skew-label" class="text-xs mt-1 text-slate-500">—</p>
           </div>
 
           <!-- S&P500 カード -->
-          <div class="bg-slate-800 rounded-xl p-4">
+          <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">S&amp;P500</p>
-            <p id="sp500-price" class="text-2xl font-black text-blue-400">—</p>
-            <p id="sp500-inv" class="text-xs mt-2 text-slate-300">—</p>
+            <p id="sp500-price" class="text-2xl font-black text-blue-500">—</p>
+            <p id="sp500-inv" class="text-xs mt-2 text-slate-500">—</p>
             <p id="sp500-pnl" class="text-xs mt-0.5 font-medium">—</p>
           </div>
 
           <!-- NASDAQ カード -->
-          <div class="bg-slate-800 rounded-xl p-4">
+          <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">NASDAQ</p>
-            <p id="nasdaq-price" class="text-2xl font-black text-violet-400">—</p>
-            <p id="nasdaq-inv" class="text-xs mt-2 text-slate-300">—</p>
+            <p id="nasdaq-price" class="text-2xl font-black text-violet-500">—</p>
+            <p id="nasdaq-inv" class="text-xs mt-2 text-slate-500">—</p>
             <p id="nasdaq-pnl" class="text-xs mt-0.5 font-medium">—</p>
           </div>
 
@@ -85,40 +86,40 @@
       </section>
 
       <!-- F&G 推移グラフ -->
-      <section class="bg-slate-800 rounded-xl p-4">
-        <p class="text-sm font-semibold text-slate-200 mb-4">Fear &amp; Greed Index 推移</p>
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-4">Fear &amp; Greed Index 推移</p>
         <div class="chart-wrap"><canvas id="fgChart"></canvas></div>
       </section>
 
       <!-- 市場価格グラフ -->
-      <section class="bg-slate-800 rounded-xl p-4">
-        <p class="text-sm font-semibold text-slate-200 mb-4">S&amp;P500 / NASDAQ 推移</p>
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-4">S&amp;P500 / NASDAQ 推移</p>
         <div class="chart-wrap"><canvas id="marketChart"></canvas></div>
       </section>
 
       <!-- 1万円投資シミュレーション -->
-      <section class="bg-slate-800 rounded-xl p-4">
-        <p class="text-sm font-semibold text-slate-200 mb-1">1万円投資シミュレーション</p>
-        <p class="text-xs text-slate-500 mb-4">その日に1万円分買っていたら、今日の価格では何円になっているか</p>
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1">1万円投資シミュレーション</p>
+        <p class="text-xs text-slate-400 mb-4">その日に1万円分買っていたら、今日の価格では何円になっているか</p>
         <div class="invest-wrap"><canvas id="investChart"></canvas></div>
       </section>
 
       <!-- 直近テーブル -->
-      <section class="bg-slate-800 rounded-xl p-4">
-        <p class="text-sm font-semibold text-slate-200 mb-4">直近の記録</p>
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-4">直近の記録</p>
         <div class="overflow-x-auto">
           <table class="w-full text-xs">
             <thead>
-              <tr class="border-b border-slate-700 text-slate-500 text-left">
-                <th class="pb-2 pr-4 font-normal">日付</th>
-                <th class="pb-2 pr-4 font-normal text-right">F&amp;G</th>
-                <th class="pb-2 pr-4 font-normal">状態</th>
-                <th class="pb-2 pr-4 font-normal text-right">SKEW</th>
-                <th class="pb-2 pr-4 font-normal text-right">S&amp;P500</th>
-                <th class="pb-2 font-normal text-right">NASDAQ</th>
+              <tr class="border-b border-slate-100 text-slate-400 text-left">
+                <th class="pb-2 pr-4 font-medium">日付</th>
+                <th class="pb-2 pr-4 font-medium text-right">F&amp;G</th>
+                <th class="pb-2 pr-4 font-medium">状態</th>
+                <th class="pb-2 pr-4 font-medium text-right">SKEW</th>
+                <th class="pb-2 pr-4 font-medium text-right">S&amp;P500</th>
+                <th class="pb-2 font-medium text-right">NASDAQ</th>
               </tr>
             </thead>
-            <tbody id="tableBody" class="text-slate-300"></tbody>
+            <tbody id="tableBody" class="text-slate-600"></tbody>
           </table>
         </div>
       </section>
@@ -162,8 +163,8 @@
       return '🔵 低め';
     }
     function pnlClass(str) {
-      if (!str || str === '—') return 'text-slate-500';
-      return str.startsWith('+') ? 'text-emerald-400' : 'text-red-400';
+      if (!str || str === '—') return 'text-slate-400';
+      return str.startsWith('+') ? 'text-emerald-500' : 'text-red-500';
     }
     function num(v) {
       const n = parseFloat(String(v).replace(/[¥,]/g, ''));
@@ -203,7 +204,7 @@
 
       // F&G
       const card = document.getElementById('card-fg');
-      card.className = `rounded-xl p-4 ${fgBg(score)}`;
+      card.className = `rounded-2xl p-4 ${fgBg(score)}`;
       const scoreEl = document.getElementById('fg-score');
       scoreEl.textContent = Math.round(score);
       scoreEl.style.color = fgColor(score);
@@ -253,7 +254,7 @@
             label: 'Fear & Greed',
             data: scores,
             borderColor: '#f97316',
-            backgroundColor: 'rgba(249,115,22,0.08)',
+            backgroundColor: 'rgba(249,115,22,0.06)',
             fill: true,
             tension: 0.4,
             pointBackgroundColor: colors,
@@ -267,14 +268,14 @@
             legend: { display: false },
             annotation: {
               annotations: {
-                fear: { type: 'line', yMin: 50, yMax: 50, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, borderDash: [5,5] },
-                greed: { type: 'line', yMin: 60, yMax: 60, borderColor: 'rgba(132,204,22,0.25)', borderWidth: 1, borderDash: [5,5] },
+                fear:  { type: 'line', yMin: 50, yMax: 50, borderColor: 'rgba(0,0,0,0.12)', borderWidth: 1, borderDash: [5,5] },
+                greed: { type: 'line', yMin: 60, yMax: 60, borderColor: 'rgba(132,204,22,0.4)', borderWidth: 1, borderDash: [5,5] },
               }
             }
           },
           scales: {
-            x: { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { min: 0, max: 100, ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y: { min: 0, max: 100, ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
           }
         }
       });
@@ -305,10 +306,10 @@
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 } } },
+          plugins: { legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } } },
           scales: {
-            x:  { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y1: { position: 'left',  ticks: { color: '#3b82f6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x:  { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y1: { position: 'left',  ticks: { color: '#3b82f6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { color: 'rgba(0,0,0,0.04)' } },
             y2: { position: 'right', ticks: { color: '#8b5cf6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { display: false } },
           }
         }
@@ -332,14 +333,14 @@
             {
               label: 'S&P500',
               data: spVals,
-              backgroundColor: spVals.map(v => v >= 10000 ? 'rgba(59,130,246,0.65)' : 'rgba(239,68,68,0.65)'),
+              backgroundColor: spVals.map(v => v >= 10000 ? 'rgba(59,130,246,0.55)' : 'rgba(239,68,68,0.55)'),
               borderColor:     spVals.map(v => v >= 10000 ? '#3b82f6' : '#ef4444'),
               borderWidth: 1,
             },
             {
               label: 'NASDAQ',
               data: ndVals,
-              backgroundColor: ndVals.map(v => v >= 10000 ? 'rgba(139,92,246,0.65)' : 'rgba(239,68,68,0.65)'),
+              backgroundColor: ndVals.map(v => v >= 10000 ? 'rgba(139,92,246,0.55)' : 'rgba(239,68,68,0.55)'),
               borderColor:     ndVals.map(v => v >= 10000 ? '#8b5cf6' : '#ef4444'),
               borderWidth: 1,
             }
@@ -348,20 +349,20 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: { labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 } },
+            legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } },
             annotation: {
               annotations: {
                 base: {
                   type: 'line', yMin: 10000, yMax: 10000,
-                  borderColor: 'rgba(255,255,255,0.35)', borderWidth: 2, borderDash: [6,4],
-                  label: { content: '元本 ¥10,000', display: true, color: '#94a3b8', font: { size: 10 }, backgroundColor: 'transparent', position: 'end' }
+                  borderColor: 'rgba(0,0,0,0.2)', borderWidth: 2, borderDash: [6,4],
+                  label: { content: '元本 ¥10,000', display: true, color: '#64748b', font: { size: 10 }, backgroundColor: 'transparent', position: 'end' }
                 }
               }
             }
           },
           scales: {
-            x: { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#64748b', font: { size: 10 }, callback: v => `¥${v.toLocaleString()}` }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => `¥${v.toLocaleString()}` }, grid: { color: 'rgba(0,0,0,0.04)' } },
           }
         }
       });
@@ -373,15 +374,15 @@
       document.getElementById('tableBody').innerHTML = recent.map(r => {
         const score = num(r[C.FG]) ?? 0;
         const notify = r[C.NOTIFY]?.includes('Yes')
-          ? '<span class="text-emerald-400">✅</span>'
-          : '<span class="text-slate-600">—</span>';
-        return `<tr class="border-b border-slate-700/40 hover:bg-slate-700/30 transition-colors">
+          ? '<span class="text-emerald-500">✅</span>'
+          : '<span class="text-slate-300">—</span>';
+        return `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
           <td class="py-2 pr-4 text-slate-400">${r[C.DATE].split(' ')[0]}</td>
           <td class="py-2 pr-4 text-right font-bold" style="color:${fgColor(score)}">${Math.round(score)}</td>
-          <td class="py-2 pr-4">${r[C.LABEL_EN] || '—'}</td>
-          <td class="py-2 pr-4 text-right text-cyan-400">${r[C.SKEW] || '—'}</td>
-          <td class="py-2 pr-4 text-right text-blue-400">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
-          <td class="py-2 text-right text-violet-400">${r[C.NASDAQ] ? num(r[C.NASDAQ])?.toLocaleString() : '—'}</td>
+          <td class="py-2 pr-4 text-slate-600">${r[C.LABEL_EN] || '—'}</td>
+          <td class="py-2 pr-4 text-right text-cyan-500">${r[C.SKEW] || '—'}</td>
+          <td class="py-2 pr-4 text-right text-blue-500">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
+          <td class="py-2 text-right text-violet-500">${r[C.NASDAQ] ? num(r[C.NASDAQ])?.toLocaleString() : '—'}</td>
         </tr>`;
       }).join('');
     }
