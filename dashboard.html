@@ -16,6 +16,7 @@
     .bg-greed-extreme { background: #dcfce7; border-left: 4px solid #22c55e; }
     .card { background: #ffffff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05); }
     .chart-wrap { position: relative; height: 220px; }
+    .chart-tall  { position: relative; height: 280px; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
@@ -98,6 +99,13 @@
       <section class="card p-4">
         <p class="text-sm font-semibold text-slate-700 mb-4">S&amp;P500 / NASDAQ 推移</p>
         <div class="chart-wrap"><canvas id="marketChart"></canvas></div>
+      </section>
+
+      <!-- 合体グラフ：S&P500 / NASDAQ / F&G -->
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1">S&amp;P500 / NASDAQ / Fear &amp; Greed 推移</p>
+        <p class="text-xs text-slate-400 mb-4">左軸：S&amp;P500　右軸：NASDAQ　オレンジライン：Fear &amp; Greed（0〜100）</p>
+        <div class="chart-tall"><canvas id="combinedChart"></canvas></div>
       </section>
 
       <!-- 直近テーブル -->
@@ -308,6 +316,99 @@
       });
     }
 
+    // ── 合体グラフ ────────────────────────────────────────────
+    function renderCombinedChart(rows) {
+      const valid = rows.filter(r => r[C.SP500] && r[C.NASDAQ] && r[C.FG]);
+      const labels  = valid.map(r => r[C.DATE].split(' ')[0]);
+      const sp500   = valid.map(r => num(r[C.SP500]));
+      const nasdaq  = valid.map(r => num(r[C.NASDAQ]));
+      const fg      = valid.map(r => num(r[C.FG]));
+      const fgColors = fg.map(s => fgColor(s ?? 50));
+
+      new Chart(document.getElementById('combinedChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'S&P500',
+              data: sp500,
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37,99,235,0.04)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+              yAxisID: 'y1',
+              order: 2,
+            },
+            {
+              label: 'NASDAQ',
+              data: nasdaq,
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5,150,105,0.04)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+              yAxisID: 'y2',
+              order: 3,
+            },
+            {
+              label: 'Fear & Greed',
+              data: fg,
+              borderColor: '#f97316',
+              backgroundColor: 'rgba(249,115,22,0.08)',
+              fill: false,
+              tension: 0.4,
+              borderWidth: 2,
+              pointBackgroundColor: fgColors,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+              yAxisID: 'y3',
+              order: 1,
+            },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } },
+            annotation: {
+              annotations: {
+                fear:  { type: 'line', yScaleID: 'y3', yMin: 50, yMax: 50, borderColor: 'rgba(0,0,0,0.1)', borderWidth: 1, borderDash: [4,4] },
+                greed: { type: 'line', yScaleID: 'y3', yMin: 60, yMax: 60, borderColor: 'rgba(132,204,22,0.3)', borderWidth: 1, borderDash: [4,4] },
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } },
+              grid: { color: 'rgba(0,0,0,0.04)' }
+            },
+            y1: {
+              position: 'left',
+              ticks: { color: '#2563eb', font: { size: 10 }, callback: v => v.toLocaleString() },
+              grid: { color: 'rgba(0,0,0,0.04)' },
+            },
+            y2: {
+              position: 'right',
+              ticks: { color: '#059669', font: { size: 10 }, callback: v => v.toLocaleString() },
+              grid: { display: false },
+            },
+            y3: {
+              position: 'right',
+              min: 0, max: 100,
+              ticks: { color: '#f97316', font: { size: 10 } },
+              grid: { display: false },
+              offset: true,
+            },
+          }
+        }
+      });
+    }
+
     // ── テーブル描画 ──────────────────────────────────────────
     function renderTable(rows) {
       const recent = [...rows].reverse().slice(0, 10);
@@ -340,6 +441,7 @@
         renderSummary(rows.at(-1));
         renderFGChart(rows);
         renderMarketChart(rows);
+        renderCombinedChart(rows);
         renderTable(rows);
       } catch (e) {
         document.getElementById('loading').classList.add('hidden');
