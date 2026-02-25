@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 投資モニター</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; }
+    .bg-fear-extreme  { background: #3b0a0a; border-left: 4px solid #ef4444; }
+    .bg-fear          { background: #431407; border-left: 4px solid #f97316; }
+    .bg-neutral       { background: #1c1917; border-left: 4px solid #eab308; }
+    .bg-greed         { background: #1a2e05; border-left: 4px solid #84cc16; }
+    .bg-greed-extreme { background: #052e16; border-left: 4px solid #22c55e; }
+    .chart-wrap { position: relative; height: 220px; }
+    .invest-wrap { position: relative; height: 260px; }
+  </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen">
+
+  <!-- ヘッダー -->
+  <header class="border-b border-slate-700 px-4 py-4 sticky top-0 bg-slate-900 z-10">
+    <div class="max-w-5xl mx-auto flex justify-between items-center">
+      <h1 class="text-lg font-bold tracking-tight">📊 投資モニター</h1>
+      <span id="lastUpdated" class="text-slate-400 text-xs">読み込み中…</span>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- ローディング -->
+    <div id="loading" class="text-center text-slate-400 py-20">
+      <div class="text-4xl mb-3">⏳</div>データを読み込んでいます…
+    </div>
+
+    <!-- エラー -->
+    <div id="error" class="hidden text-center py-20">
+      <div class="text-4xl mb-3">⚠️</div>
+      <p class="text-red-400" id="errorMsg"></p>
+      <p class="text-slate-500 text-sm mt-2">スプレッドシートが「リンクを知っている人は閲覧可能」に設定されているか確認してください。</p>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div id="content" class="hidden space-y-6">
+
+      <!-- サマリーカード -->
+      <section>
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">最新データ</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+          <!-- F&G カード -->
+          <div id="card-fg" class="rounded-xl p-4 bg-neutral">
+            <p class="text-xs text-slate-400 mb-1">Fear &amp; Greed</p>
+            <p id="fg-score" class="text-4xl font-black">—</p>
+            <p id="fg-label" class="text-xs mt-1 text-slate-300">—</p>
+            <p id="fg-change" class="text-xs text-slate-500 mt-1">前日比 —</p>
+          </div>
+
+          <!-- SKEW カード -->
+          <div class="bg-slate-800 rounded-xl p-4">
+            <p class="text-xs text-slate-400 mb-1">SKEW Index</p>
+            <p id="skew-score" class="text-4xl font-black text-cyan-400">—</p>
+            <p id="skew-label" class="text-xs mt-1 text-slate-300">—</p>
+          </div>
+
+          <!-- S&P500 カード -->
+          <div class="bg-slate-800 rounded-xl p-4">
+            <p class="text-xs text-slate-400 mb-1">S&amp;P500</p>
+            <p id="sp500-price" class="text-2xl font-black text-blue-400">—</p>
+            <p id="sp500-inv" class="text-xs mt-2 text-slate-300">—</p>
+            <p id="sp500-pnl" class="text-xs mt-0.5 font-medium">—</p>
+          </div>
+
+          <!-- NASDAQ カード -->
+          <div class="bg-slate-800 rounded-xl p-4">
+            <p class="text-xs text-slate-400 mb-1">NASDAQ</p>
+            <p id="nasdaq-price" class="text-2xl font-black text-violet-400">—</p>
+            <p id="nasdaq-inv" class="text-xs mt-2 text-slate-300">—</p>
+            <p id="nasdaq-pnl" class="text-xs mt-0.5 font-medium">—</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- F&G 推移グラフ -->
+      <section class="bg-slate-800 rounded-xl p-4">
+        <p class="text-sm font-semibold text-slate-200 mb-4">Fear &amp; Greed Index 推移</p>
+        <div class="chart-wrap"><canvas id="fgChart"></canvas></div>
+      </section>
+
+      <!-- 市場価格グラフ -->
+      <section class="bg-slate-800 rounded-xl p-4">
+        <p class="text-sm font-semibold text-slate-200 mb-4">S&amp;P500 / NASDAQ 推移</p>
+        <div class="chart-wrap"><canvas id="marketChart"></canvas></div>
+      </section>
+
+      <!-- 1万円投資シミュレーション -->
+      <section class="bg-slate-800 rounded-xl p-4">
+        <p class="text-sm font-semibold text-slate-200 mb-1">1万円投資シミュレーション</p>
+        <p class="text-xs text-slate-500 mb-4">その日に1万円分買っていたら、今日の価格では何円になっているか</p>
+        <div class="invest-wrap"><canvas id="investChart"></canvas></div>
+      </section>
+
+      <!-- 直近テーブル -->
+      <section class="bg-slate-800 rounded-xl p-4">
+        <p class="text-sm font-semibold text-slate-200 mb-4">直近の記録</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-slate-700 text-slate-500 text-left">
+                <th class="pb-2 pr-4 font-normal">日付</th>
+                <th class="pb-2 pr-4 font-normal text-right">F&amp;G</th>
+                <th class="pb-2 pr-4 font-normal">状態</th>
+                <th class="pb-2 pr-4 font-normal text-right">SKEW</th>
+                <th class="pb-2 pr-4 font-normal text-right">S&amp;P500</th>
+                <th class="pb-2 font-normal text-right">NASDAQ</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="text-slate-300"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    // ── 設定 ──────────────────────────────────────────────────
+    const SPREADSHEET_ID = '1NRXvfUjCaBJEGKvmRajf2LKDT6UOWc7oNgQ3Hb4Dgpc';
+    const SHEET_NAME     = 'ログ';
+
+    // 列インデックス（0始まり）
+    const C = {
+      DATE: 0, FG: 1, LABEL_EN: 2, LABEL_JA: 3, CHANGE: 4,
+      SKEW: 5,
+      SP500: 6, SP500_INV: 7, SP500_PNL: 8,
+      NASDAQ: 9, NASDAQ_INV: 10, NASDAQ_PNL: 11,
+      NOTIFY: 12,
+    };
+
+    // ── ユーティリティ ────────────────────────────────────────
+    function fgColor(s) {
+      if (s <= 24) return '#ef4444';
+      if (s <= 44) return '#f97316';
+      if (s <= 55) return '#eab308';
+      if (s <= 74) return '#84cc16';
+      return '#22c55e';
+    }
+    function fgBg(s) {
+      if (s <= 24) return 'bg-fear-extreme';
+      if (s <= 44) return 'bg-fear';
+      if (s <= 55) return 'bg-neutral';
+      if (s <= 74) return 'bg-greed';
+      return 'bg-greed-extreme';
+    }
+    function skewLabel(v) {
+      if (v >= 145) return '⚠️ 極めて高い';
+      if (v >= 130) return '🟡 高め';
+      if (v >= 115) return '🟢 通常範囲';
+      return '🔵 低め';
+    }
+    function pnlClass(str) {
+      if (!str || str === '—') return 'text-slate-500';
+      return str.startsWith('+') ? 'text-emerald-400' : 'text-red-400';
+    }
+    function num(v) {
+      const n = parseFloat(String(v).replace(/[¥,]/g, ''));
+      return isNaN(n) ? null : n;
+    }
+    function fmt(v) {
+      const n = num(v);
+      return n !== null ? n.toLocaleString('ja-JP') : '—';
+    }
+
+    // ── CSV パーサー ──────────────────────────────────────────
+    function parseCSV(text) {
+      return text.split('\n').filter(l => l.trim()).map(line => {
+        const row = []; let cur = '', inQ = false;
+        for (const ch of line) {
+          if (ch === '"') { inQ = !inQ; }
+          else if (ch === ',' && !inQ) { row.push(cur.trim()); cur = ''; }
+          else cur += ch;
+        }
+        row.push(cur.trim());
+        return row;
+      });
+    }
+
+    // ── データ取得 ─────────────────────────────────────────────
+    async function loadData() {
+      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = parseCSV(await res.text());
+      return rows.slice(1).filter(r => r[C.DATE] && r[C.FG]); // ヘッダー・空行を除外
+    }
+
+    // ── サマリーカード描画 ────────────────────────────────────
+    function renderSummary(r) {
+      const score = num(r[C.FG]) ?? 0;
+
+      // F&G
+      const card = document.getElementById('card-fg');
+      card.className = `rounded-xl p-4 ${fgBg(score)}`;
+      const scoreEl = document.getElementById('fg-score');
+      scoreEl.textContent = Math.round(score);
+      scoreEl.style.color = fgColor(score);
+      document.getElementById('fg-label').textContent = r[C.LABEL_JA] || '—';
+      const ch = num(r[C.CHANGE]);
+      document.getElementById('fg-change').textContent =
+        ch !== null ? `前日比 ${ch >= 0 ? '+' : ''}${ch.toFixed(2)}` : '前日比 —';
+
+      // SKEW
+      const skew = num(r[C.SKEW]);
+      document.getElementById('skew-score').textContent = skew !== null ? skew.toFixed(1) : '—';
+      document.getElementById('skew-label').textContent = skew !== null ? skewLabel(skew) : '—';
+
+      // S&P500
+      document.getElementById('sp500-price').textContent = fmt(r[C.SP500]);
+      const si = num(r[C.SP500_INV]);
+      document.getElementById('sp500-inv').textContent =
+        si !== null ? `1万円 → ¥${si.toLocaleString()}` : 'データなし';
+      const spPnl = document.getElementById('sp500-pnl');
+      spPnl.textContent = r[C.SP500_PNL] || '—';
+      spPnl.className = `text-xs mt-0.5 font-medium ${pnlClass(r[C.SP500_PNL])}`;
+
+      // NASDAQ
+      document.getElementById('nasdaq-price').textContent = fmt(r[C.NASDAQ]);
+      const ni = num(r[C.NASDAQ_INV]);
+      document.getElementById('nasdaq-inv').textContent =
+        ni !== null ? `1万円 → ¥${ni.toLocaleString()}` : 'データなし';
+      const ndPnl = document.getElementById('nasdaq-pnl');
+      ndPnl.textContent = r[C.NASDAQ_PNL] || '—';
+      ndPnl.className = `text-xs mt-0.5 font-medium ${pnlClass(r[C.NASDAQ_PNL])}`;
+
+      // 最終更新
+      document.getElementById('lastUpdated').textContent = `最終更新: ${r[C.DATE]}`;
+    }
+
+    // ── F&G グラフ ────────────────────────────────────────────
+    function renderFGChart(rows) {
+      const labels = rows.map(r => r[C.DATE].split(' ')[0]);
+      const scores = rows.map(r => num(r[C.FG]));
+      const colors = scores.map(s => fgColor(s ?? 50));
+
+      new Chart(document.getElementById('fgChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Fear & Greed',
+            data: scores,
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249,115,22,0.08)',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: colors,
+            pointRadius: rows.length > 60 ? 0 : 4,
+            pointHoverRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            annotation: {
+              annotations: {
+                fear: { type: 'line', yMin: 50, yMax: 50, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1, borderDash: [5,5] },
+                greed: { type: 'line', yMin: 60, yMax: 60, borderColor: 'rgba(132,204,22,0.25)', borderWidth: 1, borderDash: [5,5] },
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { min: 0, max: 100, ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          }
+        }
+      });
+    }
+
+    // ── 市場価格グラフ ────────────────────────────────────────
+    function renderMarketChart(rows) {
+      const valid = rows.filter(r => r[C.SP500] && r[C.NASDAQ]);
+      const labels = valid.map(r => r[C.DATE].split(' ')[0]);
+      new Chart(document.getElementById('marketChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'S&P500',
+              data: valid.map(r => num(r[C.SP500])),
+              borderColor: '#3b82f6', backgroundColor: 'transparent',
+              tension: 0.4, pointRadius: valid.length > 60 ? 0 : 3, yAxisID: 'y1',
+            },
+            {
+              label: 'NASDAQ',
+              data: valid.map(r => num(r[C.NASDAQ])),
+              borderColor: '#8b5cf6', backgroundColor: 'transparent',
+              tension: 0.4, pointRadius: valid.length > 60 ? 0 : 3, yAxisID: 'y2',
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 } } },
+          scales: {
+            x:  { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y1: { position: 'left',  ticks: { color: '#3b82f6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y2: { position: 'right', ticks: { color: '#8b5cf6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { display: false } },
+          }
+        }
+      });
+    }
+
+    // ── 投資シミュレーショングラフ ────────────────────────────
+    function renderInvestChart(rows) {
+      const valid = rows.filter(r => r[C.SP500_INV] && r[C.NASDAQ_INV] && num(r[C.SP500_INV]) && num(r[C.NASDAQ_INV]));
+      if (valid.length === 0) return;
+
+      const labels  = valid.map(r => r[C.DATE].split(' ')[0]);
+      const spVals  = valid.map(r => num(r[C.SP500_INV]));
+      const ndVals  = valid.map(r => num(r[C.NASDAQ_INV]));
+
+      new Chart(document.getElementById('investChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'S&P500',
+              data: spVals,
+              backgroundColor: spVals.map(v => v >= 10000 ? 'rgba(59,130,246,0.65)' : 'rgba(239,68,68,0.65)'),
+              borderColor:     spVals.map(v => v >= 10000 ? '#3b82f6' : '#ef4444'),
+              borderWidth: 1,
+            },
+            {
+              label: 'NASDAQ',
+              data: ndVals,
+              backgroundColor: ndVals.map(v => v >= 10000 ? 'rgba(139,92,246,0.65)' : 'rgba(239,68,68,0.65)'),
+              borderColor:     ndVals.map(v => v >= 10000 ? '#8b5cf6' : '#ef4444'),
+              borderWidth: 1,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 } },
+            annotation: {
+              annotations: {
+                base: {
+                  type: 'line', yMin: 10000, yMax: 10000,
+                  borderColor: 'rgba(255,255,255,0.35)', borderWidth: 2, borderDash: [6,4],
+                  label: { content: '元本 ¥10,000', display: true, color: '#94a3b8', font: { size: 10 }, backgroundColor: 'transparent', position: 'end' }
+                }
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#64748b', font: { size: 10 }, callback: v => `¥${v.toLocaleString()}` }, grid: { color: 'rgba(255,255,255,0.05)' } },
+          }
+        }
+      });
+    }
+
+    // ── テーブル描画 ──────────────────────────────────────────
+    function renderTable(rows) {
+      const recent = [...rows].reverse().slice(0, 10);
+      document.getElementById('tableBody').innerHTML = recent.map(r => {
+        const score = num(r[C.FG]) ?? 0;
+        const notify = r[C.NOTIFY]?.includes('Yes')
+          ? '<span class="text-emerald-400">✅</span>'
+          : '<span class="text-slate-600">—</span>';
+        return `<tr class="border-b border-slate-700/40 hover:bg-slate-700/30 transition-colors">
+          <td class="py-2 pr-4 text-slate-400">${r[C.DATE].split(' ')[0]}</td>
+          <td class="py-2 pr-4 text-right font-bold" style="color:${fgColor(score)}">${Math.round(score)}</td>
+          <td class="py-2 pr-4">${r[C.LABEL_EN] || '—'}</td>
+          <td class="py-2 pr-4 text-right text-cyan-400">${r[C.SKEW] || '—'}</td>
+          <td class="py-2 pr-4 text-right text-blue-400">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
+          <td class="py-2 text-right text-violet-400">${r[C.NASDAQ] ? num(r[C.NASDAQ])?.toLocaleString() : '—'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── メイン ────────────────────────────────────────────────
+    async function main() {
+      try {
+        const rows = await loadData();
+        if (rows.length === 0) throw new Error('データがまだありません');
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('content').classList.remove('hidden');
+        renderSummary(rows.at(-1));
+        renderFGChart(rows);
+        renderMarketChart(rows);
+        renderInvestChart(rows);
+        renderTable(rows);
+      } catch (e) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('errorMsg').textContent = e.message;
+      }
+    }
+    main();
+  </script>
+</body>
+</html>
