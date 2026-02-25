@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📊 投資モニター</title>
+  <title>投資モニター</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
@@ -16,7 +16,6 @@
     .bg-greed-extreme { background: #dcfce7; border-left: 4px solid #22c55e; }
     .card { background: #ffffff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05); }
     .chart-wrap { position: relative; height: 220px; }
-    .invest-wrap { position: relative; height: 260px; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
@@ -24,7 +23,15 @@
   <!-- ヘッダー -->
   <header class="border-b border-slate-200 px-4 py-4 sticky top-0 bg-white z-10 shadow-sm">
     <div class="max-w-5xl mx-auto flex justify-between items-center">
-      <h1 class="text-lg font-bold tracking-tight text-slate-800">📊 投資モニター</h1>
+      <div class="flex items-center gap-2">
+        <!-- ロゴアイコン -->
+        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="1,12 5,7 8,9 12,4 15,6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+        </div>
+        <h1 class="text-base font-bold tracking-tight text-slate-800">投資モニター</h1>
+      </div>
       <span id="lastUpdated" class="text-slate-400 text-xs">読み込み中…</span>
     </div>
   </header>
@@ -69,17 +76,13 @@
           <!-- S&P500 カード -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">S&amp;P500</p>
-            <p id="sp500-price" class="text-2xl font-black text-blue-500">—</p>
-            <p id="sp500-inv" class="text-xs mt-2 text-slate-500">—</p>
-            <p id="sp500-pnl" class="text-xs mt-0.5 font-medium">—</p>
+            <p id="sp500-price" class="text-2xl font-black text-blue-600">—</p>
           </div>
 
           <!-- NASDAQ カード -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">NASDAQ</p>
-            <p id="nasdaq-price" class="text-2xl font-black text-violet-500">—</p>
-            <p id="nasdaq-inv" class="text-xs mt-2 text-slate-500">—</p>
-            <p id="nasdaq-pnl" class="text-xs mt-0.5 font-medium">—</p>
+            <p id="nasdaq-price" class="text-2xl font-black text-emerald-600">—</p>
           </div>
 
         </div>
@@ -97,13 +100,6 @@
         <div class="chart-wrap"><canvas id="marketChart"></canvas></div>
       </section>
 
-      <!-- 1万円投資シミュレーション -->
-      <section class="card p-4">
-        <p class="text-sm font-semibold text-slate-700 mb-1">1万円投資シミュレーション</p>
-        <p class="text-xs text-slate-400 mb-4">その日に1万円分買っていたら、今日の価格では何円になっているか</p>
-        <div class="invest-wrap"><canvas id="investChart"></canvas></div>
-      </section>
-
       <!-- 直近テーブル -->
       <section class="card p-4">
         <p class="text-sm font-semibold text-slate-700 mb-4">直近の記録</p>
@@ -111,12 +107,16 @@
           <table class="w-full text-xs">
             <thead>
               <tr class="border-b border-slate-100 text-slate-400 text-left">
-                <th class="pb-2 pr-4 font-medium">日付</th>
-                <th class="pb-2 pr-4 font-medium text-right">F&amp;G</th>
-                <th class="pb-2 pr-4 font-medium">状態</th>
-                <th class="pb-2 pr-4 font-medium text-right">SKEW</th>
-                <th class="pb-2 pr-4 font-medium text-right">S&amp;P500</th>
-                <th class="pb-2 font-medium text-right">NASDAQ</th>
+                <th class="pb-2 pr-3 font-medium whitespace-nowrap">日付</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">F&amp;G</th>
+                <th class="pb-2 pr-3 font-medium whitespace-nowrap">状態</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SKEW</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">S&amp;P500</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 1万円→</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 損益</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NASDAQ</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ 1万円→</th>
+                <th class="pb-2 font-medium text-right whitespace-nowrap">NDQ 損益</th>
               </tr>
             </thead>
             <tbody id="tableBody" class="text-slate-600"></tbody>
@@ -164,7 +164,7 @@
     }
     function pnlClass(str) {
       if (!str || str === '—') return 'text-slate-400';
-      return str.startsWith('+') ? 'text-emerald-500' : 'text-red-500';
+      return str.startsWith('+') ? 'text-emerald-600' : 'text-red-500';
     }
     function num(v) {
       const n = parseFloat(String(v).replace(/[¥,]/g, ''));
@@ -195,7 +195,7 @@
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const rows = parseCSV(await res.text());
-      return rows.slice(1).filter(r => r[C.DATE] && r[C.FG]); // ヘッダー・空行を除外
+      return rows.slice(1).filter(r => r[C.DATE] && r[C.FG]);
     }
 
     // ── サマリーカード描画 ────────────────────────────────────
@@ -220,21 +220,9 @@
 
       // S&P500
       document.getElementById('sp500-price').textContent = fmt(r[C.SP500]);
-      const si = num(r[C.SP500_INV]);
-      document.getElementById('sp500-inv').textContent =
-        si !== null ? `1万円 → ¥${si.toLocaleString()}` : 'データなし';
-      const spPnl = document.getElementById('sp500-pnl');
-      spPnl.textContent = r[C.SP500_PNL] || '—';
-      spPnl.className = `text-xs mt-0.5 font-medium ${pnlClass(r[C.SP500_PNL])}`;
 
       // NASDAQ
       document.getElementById('nasdaq-price').textContent = fmt(r[C.NASDAQ]);
-      const ni = num(r[C.NASDAQ_INV]);
-      document.getElementById('nasdaq-inv').textContent =
-        ni !== null ? `1万円 → ¥${ni.toLocaleString()}` : 'データなし';
-      const ndPnl = document.getElementById('nasdaq-pnl');
-      ndPnl.textContent = r[C.NASDAQ_PNL] || '—';
-      ndPnl.className = `text-xs mt-0.5 font-medium ${pnlClass(r[C.NASDAQ_PNL])}`;
 
       // 最終更新
       document.getElementById('lastUpdated').textContent = `最終更新: ${r[C.DATE]}`;
@@ -293,13 +281,17 @@
             {
               label: 'S&P500',
               data: valid.map(r => num(r[C.SP500])),
-              borderColor: '#3b82f6', backgroundColor: 'transparent',
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37,99,235,0.05)',
+              fill: true,
               tension: 0.4, pointRadius: valid.length > 60 ? 0 : 3, yAxisID: 'y1',
             },
             {
               label: 'NASDAQ',
               data: valid.map(r => num(r[C.NASDAQ])),
-              borderColor: '#8b5cf6', backgroundColor: 'transparent',
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5,150,105,0.05)',
+              fill: true,
               tension: 0.4, pointRadius: valid.length > 60 ? 0 : 3, yAxisID: 'y2',
             }
           ]
@@ -309,60 +301,8 @@
           plugins: { legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } } },
           scales: {
             x:  { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
-            y1: { position: 'left',  ticks: { color: '#3b82f6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { color: 'rgba(0,0,0,0.04)' } },
-            y2: { position: 'right', ticks: { color: '#8b5cf6', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { display: false } },
-          }
-        }
-      });
-    }
-
-    // ── 投資シミュレーショングラフ ────────────────────────────
-    function renderInvestChart(rows) {
-      const valid = rows.filter(r => r[C.SP500_INV] && r[C.NASDAQ_INV] && num(r[C.SP500_INV]) && num(r[C.NASDAQ_INV]));
-      if (valid.length === 0) return;
-
-      const labels  = valid.map(r => r[C.DATE].split(' ')[0]);
-      const spVals  = valid.map(r => num(r[C.SP500_INV]));
-      const ndVals  = valid.map(r => num(r[C.NASDAQ_INV]));
-
-      new Chart(document.getElementById('investChart'), {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'S&P500',
-              data: spVals,
-              backgroundColor: spVals.map(v => v >= 10000 ? 'rgba(59,130,246,0.55)' : 'rgba(239,68,68,0.55)'),
-              borderColor:     spVals.map(v => v >= 10000 ? '#3b82f6' : '#ef4444'),
-              borderWidth: 1,
-            },
-            {
-              label: 'NASDAQ',
-              data: ndVals,
-              backgroundColor: ndVals.map(v => v >= 10000 ? 'rgba(139,92,246,0.55)' : 'rgba(239,68,68,0.55)'),
-              borderColor:     ndVals.map(v => v >= 10000 ? '#8b5cf6' : '#ef4444'),
-              borderWidth: 1,
-            }
-          ]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: {
-            legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } },
-            annotation: {
-              annotations: {
-                base: {
-                  type: 'line', yMin: 10000, yMax: 10000,
-                  borderColor: 'rgba(0,0,0,0.2)', borderWidth: 2, borderDash: [6,4],
-                  label: { content: '元本 ¥10,000', display: true, color: '#64748b', font: { size: 10 }, backgroundColor: 'transparent', position: 'end' }
-                }
-              }
-            }
-          },
-          scales: {
-            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
-            y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => `¥${v.toLocaleString()}` }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y1: { position: 'left',  ticks: { color: '#2563eb', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y2: { position: 'right', ticks: { color: '#059669', font: { size: 10 }, callback: v => v.toLocaleString() }, grid: { display: false } },
           }
         }
       });
@@ -373,16 +313,19 @@
       const recent = [...rows].reverse().slice(0, 10);
       document.getElementById('tableBody').innerHTML = recent.map(r => {
         const score = num(r[C.FG]) ?? 0;
-        const notify = r[C.NOTIFY]?.includes('Yes')
-          ? '<span class="text-emerald-500">✅</span>'
-          : '<span class="text-slate-300">—</span>';
+        const spInv = num(r[C.SP500_INV]);
+        const ndInv = num(r[C.NASDAQ_INV]);
         return `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-          <td class="py-2 pr-4 text-slate-400">${r[C.DATE].split(' ')[0]}</td>
-          <td class="py-2 pr-4 text-right font-bold" style="color:${fgColor(score)}">${Math.round(score)}</td>
-          <td class="py-2 pr-4 text-slate-600">${r[C.LABEL_EN] || '—'}</td>
-          <td class="py-2 pr-4 text-right text-cyan-500">${r[C.SKEW] || '—'}</td>
-          <td class="py-2 pr-4 text-right text-blue-500">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
-          <td class="py-2 text-right text-violet-500">${r[C.NASDAQ] ? num(r[C.NASDAQ])?.toLocaleString() : '—'}</td>
+          <td class="py-2 pr-3 text-slate-400 whitespace-nowrap">${r[C.DATE].split(' ')[0]}</td>
+          <td class="py-2 pr-3 text-right font-bold whitespace-nowrap" style="color:${fgColor(score)}">${Math.round(score)}</td>
+          <td class="py-2 pr-3 text-slate-600 whitespace-nowrap">${r[C.LABEL_EN] || '—'}</td>
+          <td class="py-2 pr-3 text-right text-cyan-500 whitespace-nowrap">${r[C.SKEW] || '—'}</td>
+          <td class="py-2 pr-3 text-right text-blue-600 whitespace-nowrap">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${spInv !== null ? '¥' + spInv.toLocaleString() : '—'}</td>
+          <td class="py-2 pr-3 text-right whitespace-nowrap ${pnlClass(r[C.SP500_PNL])}">${r[C.SP500_PNL] || '—'}</td>
+          <td class="py-2 pr-3 text-right text-emerald-600 whitespace-nowrap">${r[C.NASDAQ] ? num(r[C.NASDAQ])?.toLocaleString() : '—'}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${ndInv !== null ? '¥' + ndInv.toLocaleString() : '—'}</td>
+          <td class="py-2 text-right whitespace-nowrap ${pnlClass(r[C.NASDAQ_PNL])}">${r[C.NASDAQ_PNL] || '—'}</td>
         </tr>`;
       }).join('');
     }
@@ -397,7 +340,6 @@
         renderSummary(rows.at(-1));
         renderFGChart(rows);
         renderMarketChart(rows);
-        renderInvestChart(rows);
         renderTable(rows);
       } catch (e) {
         document.getElementById('loading').classList.add('hidden');
