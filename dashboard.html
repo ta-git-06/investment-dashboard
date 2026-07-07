@@ -24,7 +24,7 @@
 
   <!-- ヘッダー -->
   <header class="border-b border-slate-200 px-4 py-4 sticky top-0 bg-white z-10 shadow-sm">
-    <div class="max-w-5xl mx-auto flex justify-between items-center">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-2">
         <!-- ロゴアイコン -->
         <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
@@ -38,7 +38,7 @@
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
     <!-- ローディング -->
     <div id="loading" class="text-center text-slate-400 py-20">
@@ -90,6 +90,56 @@
         </div>
       </section>
 
+      <!-- テクニカル指標カード -->
+      <section>
+        <p class="text-xs text-slate-400 uppercase tracking-widest mb-3">テクニカル指標</p>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+
+          <!-- S&P500 RCI 短期 -->
+          <div class="card p-4">
+            <p class="text-xs text-slate-400 mb-1">S&amp;P500 RCI 短期(10)</p>
+            <p id="sp500-rci-s" class="text-3xl font-black text-blue-600">—</p>
+            <p id="sp500-rci-s-label" class="text-xs mt-1 text-slate-500">—</p>
+          </div>
+
+          <!-- S&P500 RCI 長期 -->
+          <div class="card p-4">
+            <p class="text-xs text-slate-400 mb-1">S&amp;P500 RCI 長期(30)</p>
+            <p id="sp500-rci-l" class="text-3xl font-black text-blue-600">—</p>
+            <p id="sp500-rci-l-label" class="text-xs mt-1 text-slate-500">—</p>
+          </div>
+
+          <!-- S&P500 50日MA乖離率 -->
+          <div class="card p-4">
+            <p class="text-xs text-slate-400 mb-1">S&amp;P500 50日MA乖離率</p>
+            <p id="sp500-ma50" class="text-3xl font-black text-blue-600">—</p>
+            <p id="sp500-ma50-label" class="text-xs mt-1 text-slate-500">—</p>
+          </div>
+
+          <!-- NASDAQ RCI 短期 -->
+          <div class="card p-4">
+            <p class="text-xs text-slate-400 mb-1">NASDAQ RCI 短期(10)</p>
+            <p id="ndq-rci-s" class="text-3xl font-black text-emerald-600">—</p>
+            <p id="ndq-rci-s-label" class="text-xs mt-1 text-slate-500">—</p>
+          </div>
+
+          <!-- NASDAQ RCI 長期 -->
+          <div class="card p-4">
+            <p class="text-xs text-slate-400 mb-1">NASDAQ RCI 長期(30)</p>
+            <p id="ndq-rci-l" class="text-3xl font-black text-emerald-600">—</p>
+            <p id="ndq-rci-l-label" class="text-xs mt-1 text-slate-500">—</p>
+          </div>
+
+          <!-- NASDAQ 50日MA乖離率 -->
+          <div class="card p-4">
+            <p class="text-xs text-slate-400 mb-1">NASDAQ 50日MA乖離率</p>
+            <p id="ndq-ma50" class="text-3xl font-black text-emerald-600">—</p>
+            <p id="ndq-ma50-label" class="text-xs mt-1 text-slate-500">—</p>
+          </div>
+
+        </div>
+      </section>
+
       <!-- F&G 推移グラフ -->
       <section class="card p-4">
         <p class="text-sm font-semibold text-slate-700 mb-4">Fear &amp; Greed Index 推移</p>
@@ -109,6 +159,27 @@
         <div class="chart-tall"><canvas id="combinedChart"></canvas></div>
       </section>
 
+      <!-- S&P500 RCI 推移 -->
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1">S&amp;P500 RCI 推移</p>
+        <p class="text-xs text-slate-400 mb-4">実線：短期(10日)　破線：長期(30日)　±60 の水平線は買い/売りシグナルの目安</p>
+        <div class="chart-wrap"><canvas id="rciSp500Chart"></canvas></div>
+      </section>
+
+      <!-- NASDAQ RCI 推移 -->
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1">NASDAQ RCI 推移</p>
+        <p class="text-xs text-slate-400 mb-4">実線：短期(10日)　破線：長期(30日)　±60 の水平線は買い/売りシグナルの目安</p>
+        <div class="chart-wrap"><canvas id="rciNasdaqChart"></canvas></div>
+      </section>
+
+      <!-- 50日MA乖離率 推移 -->
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1">50日MA乖離率 推移</p>
+        <p class="text-xs text-slate-400 mb-4">青：S&amp;P500　緑：NASDAQ　マイナスは50日MAを下回る（買いチャンスの目安）</p>
+        <div class="chart-wrap"><canvas id="ma50Chart"></canvas></div>
+      </section>
+
       <!-- 直近テーブル -->
       <section class="card p-4">
         <p class="text-sm font-semibold text-slate-700 mb-4">直近の記録</p>
@@ -118,8 +189,13 @@
               <tr class="border-b border-slate-100 text-slate-400 text-left">
                 <th class="pb-2 pr-3 font-medium whitespace-nowrap">日付</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">F&amp;G</th>
-                <th class="pb-2 pr-3 font-medium whitespace-nowrap">状態</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SKEW</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 RCI(10)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 RCI(30)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 MA50</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ RCI(10)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ RCI(30)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ MA50</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">S&amp;P500</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 10万円→</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 損益</th>
@@ -143,8 +219,13 @@
               <tr class="border-b border-slate-100 text-slate-400 text-left">
                 <th class="pb-2 pr-3 font-medium whitespace-nowrap">日付</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">F&amp;G</th>
-                <th class="pb-2 pr-3 font-medium whitespace-nowrap">状態</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SKEW</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 RCI(10)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 RCI(30)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 MA50</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ RCI(10)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ RCI(30)</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">NDQ MA50</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">S&amp;P500</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 10万円→</th>
                 <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">SP500 損益</th>
@@ -174,6 +255,9 @@
       SP500: 6, SP500_INV: 7, SP500_PNL: 8,
       NASDAQ: 9, NASDAQ_INV: 10, NASDAQ_PNL: 11,
       NOTIFY: 12,
+      SP500_RCI_S: 13, SP500_RCI_L: 14,
+      NDQ_RCI_S: 15,   NDQ_RCI_L: 16,
+      SP500_MA50: 17,  NDQ_MA50: 18,
     };
 
     // ── ユーティリティ ────────────────────────────────────────
@@ -209,6 +293,40 @@
       const n = num(v);
       return n !== null ? n.toLocaleString('ja-JP') : '—';
     }
+    // "+3.20%" / "-1.5%" などの文字列を数値に
+    function pct(v) {
+      if (v === undefined || v === null || v === '') return null;
+      const n = parseFloat(String(v).replace(/[%+,]/g, ''));
+      return isNaN(n) ? null : n;
+    }
+    function rciLabel(v) {
+      if (v === null) return '—';
+      if (v <= -80) return '⚠️ 売られすぎ（強）';
+      if (v <= -60) return '🟢 売られすぎ';
+      if (v >= 80)  return '⚠️ 買われすぎ（強）';
+      if (v >= 60)  return '🔴 買われすぎ';
+      return '🔵 通常範囲';
+    }
+    function maDevLabel(v) {
+      if (v === null) return '—';
+      if (v <= -5) return '🟢 大きく下方乖離';
+      if (v <  0)  return '🔵 下方乖離';
+      if (v >  5)  return '🔴 大きく上方乖離';
+      return '⚪️ 上方乖離';
+    }
+    function setText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+    // テーブルセル用フォーマッタ（RCI: 1桁小数 / MA: 符号付き2桁% ）
+    function fmtRci(v) {
+      const n = num(v);
+      return n !== null ? n.toFixed(1) : '—';
+    }
+    function fmtMa(v) {
+      const n = pct(v);
+      return n !== null ? `${n >= 0 ? '+' : ''}${n.toFixed(2)}%` : '—';
+    }
 
     // ── CSV パーサー ──────────────────────────────────────────
     function parseCSV(text) {
@@ -230,7 +348,12 @@
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const rows = parseCSV(await res.text());
-      return rows.slice(1).filter(r => r[C.DATE] && r[C.FG]);
+      const filtered = rows.slice(1).filter(r => r[C.DATE] && r[C.FG]);
+      // A列（日時 "YYYY-MM-DD HH:MM:SS"）で昇順ソート。
+      // ISO風フォーマットなので文字列比較で正しく並ぶ。
+      // backfill による追記で物理順が乱れてもここで正規化する。
+      filtered.sort((a, b) => a[C.DATE].localeCompare(b[C.DATE]));
+      return filtered;
     }
 
     // ── サマリーカード描画 ────────────────────────────────────
@@ -258,6 +381,27 @@
 
       // NASDAQ
       document.getElementById('nasdaq-price').textContent = fmt(r[C.NASDAQ]);
+
+      // テクニカル指標
+      const spRciS = num(r[C.SP500_RCI_S]);
+      const spRciL = num(r[C.SP500_RCI_L]);
+      const ndRciS = num(r[C.NDQ_RCI_S]);
+      const ndRciL = num(r[C.NDQ_RCI_L]);
+      const spMa   = pct(r[C.SP500_MA50]);
+      const ndMa   = pct(r[C.NDQ_MA50]);
+
+      setText('sp500-rci-s', spRciS !== null ? spRciS.toFixed(1) : '—');
+      setText('sp500-rci-s-label', rciLabel(spRciS));
+      setText('sp500-rci-l', spRciL !== null ? spRciL.toFixed(1) : '—');
+      setText('sp500-rci-l-label', rciLabel(spRciL));
+      setText('ndq-rci-s', ndRciS !== null ? ndRciS.toFixed(1) : '—');
+      setText('ndq-rci-s-label', rciLabel(ndRciS));
+      setText('ndq-rci-l', ndRciL !== null ? ndRciL.toFixed(1) : '—');
+      setText('ndq-rci-l-label', rciLabel(ndRciL));
+      setText('sp500-ma50', spMa !== null ? `${spMa >= 0 ? '+' : ''}${spMa.toFixed(2)}%` : '—');
+      setText('sp500-ma50-label', maDevLabel(spMa));
+      setText('ndq-ma50', ndMa !== null ? `${ndMa >= 0 ? '+' : ''}${ndMa.toFixed(2)}%` : '—');
+      setText('ndq-ma50-label', maDevLabel(ndMa));
 
       // 最終更新
       document.getElementById('lastUpdated').textContent = `最終更新: ${r[C.DATE]}`;
@@ -436,6 +580,112 @@
       });
     }
 
+    // ── RCI・MA乖離率グラフ ──────────────────────────────────
+    function renderRciChart(canvasId, rows, shortIdx, longIdx, shortColor, longColor, label) {
+      const valid = rows.filter(r => r[shortIdx] !== undefined && r[shortIdx] !== '' && r[longIdx] !== undefined && r[longIdx] !== '');
+      const labels = valid.map(r => r[C.DATE].split(' ')[0]);
+      new Chart(document.getElementById(canvasId), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: `${label} 短期(10)`,
+              data: valid.map(r => num(r[shortIdx])),
+              borderColor: shortColor,
+              backgroundColor: 'rgba(0,0,0,0)',
+              fill: false,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+            },
+            {
+              label: `${label} 長期(30)`,
+              data: valid.map(r => num(r[longIdx])),
+              borderColor: longColor,
+              backgroundColor: 'rgba(0,0,0,0)',
+              borderDash: [6, 4],
+              fill: false,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } },
+            annotation: {
+              annotations: {
+                zero: { type: 'line', yMin: 0,   yMax: 0,   borderColor: 'rgba(0,0,0,0.12)', borderWidth: 1, borderDash: [5,5] },
+                buy:  { type: 'line', yMin: -60, yMax: -60, borderColor: 'rgba(34,197,94,0.4)', borderWidth: 1, borderDash: [4,4] },
+                sell: { type: 'line', yMin: 60,  yMax: 60,  borderColor: 'rgba(239,68,68,0.4)', borderWidth: 1, borderDash: [4,4] },
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y: { min: -100, max: 100, ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+          }
+        }
+      });
+    }
+
+    function renderMa50Chart(rows) {
+      const valid = rows.filter(r => (r[C.SP500_MA50] || r[C.NDQ_MA50]));
+      const labels = valid.map(r => r[C.DATE].split(' ')[0]);
+      new Chart(document.getElementById('ma50Chart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'S&P500',
+              data: valid.map(r => pct(r[C.SP500_MA50])),
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37,99,235,0.05)',
+              fill: false,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+            },
+            {
+              label: 'NASDAQ',
+              data: valid.map(r => pct(r[C.NDQ_MA50])),
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5,150,105,0.05)',
+              fill: false,
+              tension: 0.4,
+              borderWidth: 2,
+              pointRadius: valid.length > 60 ? 0 : 3,
+              pointHoverRadius: 5,
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 12 } },
+            annotation: {
+              annotations: {
+                zero: { type: 'line', yMin: 0, yMax: 0, borderColor: 'rgba(0,0,0,0.12)', borderWidth: 1, borderDash: [5,5] },
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 }, callback: v => `${v}%` }, grid: { color: 'rgba(0,0,0,0.04)' } },
+          }
+        }
+      });
+    }
+
     // ── テーブル描画 ──────────────────────────────────────────
     function renderTable(rows) {
       const recent = [...rows].reverse().slice(0, 10);
@@ -446,8 +696,13 @@
         return `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
           <td class="py-2 pr-3 text-slate-400 whitespace-nowrap">${r[C.DATE].split(' ')[0]}</td>
           <td class="py-2 pr-3 text-right font-bold whitespace-nowrap" style="color:${fgColor(score)}">${Math.round(score)}</td>
-          <td class="py-2 pr-3 text-slate-600 whitespace-nowrap">${r[C.LABEL_EN] || '—'}</td>
           <td class="py-2 pr-3 text-right text-cyan-500 whitespace-nowrap">${r[C.SKEW] || '—'}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.SP500_RCI_S])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.SP500_RCI_L])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtMa(r[C.SP500_MA50])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.NDQ_RCI_S])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.NDQ_RCI_L])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtMa(r[C.NDQ_MA50])}</td>
           <td class="py-2 pr-3 text-right text-blue-600 whitespace-nowrap">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
           <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${spInv !== null ? '¥' + spInv.toLocaleString() : '—'}</td>
           <td class="py-2 pr-3 text-right whitespace-nowrap ${pnlClass(r[C.SP500_PNL])}">${r[C.SP500_PNL] || '—'}</td>
@@ -480,8 +735,13 @@
         return `<tr class="border-b border-slate-100 hover:bg-red-50 transition-colors">
           <td class="py-2 pr-3 text-slate-400 whitespace-nowrap">${r[C.DATE].split(' ')[0]}</td>
           <td class="py-2 pr-3 text-right font-bold whitespace-nowrap" style="color:${fgColor(score)}">${Math.round(score)}</td>
-          <td class="py-2 pr-3 text-slate-600 whitespace-nowrap">${r[C.LABEL_EN] || '—'}</td>
           <td class="py-2 pr-3 text-right text-cyan-500 whitespace-nowrap">${r[C.SKEW] || '—'}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.SP500_RCI_S])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.SP500_RCI_L])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtMa(r[C.SP500_MA50])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.NDQ_RCI_S])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtRci(r[C.NDQ_RCI_L])}</td>
+          <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${fmtMa(r[C.NDQ_MA50])}</td>
           <td class="py-2 pr-3 text-right text-blue-600 whitespace-nowrap">${r[C.SP500] ? num(r[C.SP500])?.toLocaleString() : '—'}</td>
           <td class="py-2 pr-3 text-right text-slate-600 whitespace-nowrap">${spInv !== null ? '¥' + spInv.toLocaleString() : '—'}</td>
           <td class="py-2 pr-3 text-right whitespace-nowrap ${pnlClass(r[C.SP500_PNL])}">${r[C.SP500_PNL] || '—'}</td>
@@ -503,6 +763,9 @@
         renderFGChart(rows);
         renderMarketChart(rows);
         renderCombinedChart(rows);
+        renderRciChart('rciSp500Chart', rows, C.SP500_RCI_S, C.SP500_RCI_L, '#2563eb', '#1e40af', 'S&P500');
+        renderRciChart('rciNasdaqChart', rows, C.NDQ_RCI_S, C.NDQ_RCI_L, '#059669', '#065f46', 'NASDAQ');
+        renderMa50Chart(rows);
         renderTable(rows);
         renderFearTable(rows);
       } catch (e) {
