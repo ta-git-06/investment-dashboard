@@ -8,16 +8,20 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; }
-    .bg-fear-extreme  { background: #fff1f1; border-left: 4px solid #ef4444; }
-    .bg-fear          { background: #fff7ed; border-left: 4px solid #f97316; }
-    .bg-neutral       { background: #fefce8; border-left: 4px solid #eab308; }
-    .bg-greed         { background: #f0fdf4; border-left: 4px solid #84cc16; }
-    .bg-greed-extreme { background: #dcfce7; border-left: 4px solid #22c55e; }
     .card { background: #ffffff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05); }
+    /* F&G カードの状態別トーン（背景色のみ・アクセントボーダーなし） */
+    .tint-fear-extreme  { background: #fff1f1; }
+    .tint-fear          { background: #fff7ed; }
+    .tint-neutral       { background: #fefce8; }
+    .tint-greed         { background: #f0fdf4; }
+    .tint-greed-extreme { background: #dcfce7; }
     .chart-wrap { position: relative; height: 220px; }
     .chart-tall  { position: relative; height: 280px; }
+    /* Lucide アイコン（インライン用） */
+    .lucide { display: inline-block; vertical-align: -0.125em; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
@@ -27,10 +31,8 @@
     <div class="max-w-7xl mx-auto flex justify-between items-center">
       <div class="flex items-center gap-2">
         <!-- ロゴアイコン -->
-        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polyline points="1,12 5,7 8,9 12,4 15,6" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          </svg>
+        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
         </div>
         <h1 class="text-base font-bold tracking-tight text-slate-800">投資モニター</h1>
       </div>
@@ -42,12 +44,13 @@
 
     <!-- ローディング -->
     <div id="loading" class="text-center text-slate-400 py-20">
-      <div class="text-4xl mb-3">⏳</div>データを読み込んでいます…
+      <i data-lucide="loader-circle" class="w-8 h-8 mx-auto mb-3 animate-spin"></i>
+      <p>データを読み込んでいます…</p>
     </div>
 
     <!-- エラー -->
     <div id="error" class="hidden text-center py-20">
-      <div class="text-4xl mb-3">⚠️</div>
+      <i data-lucide="triangle-alert" class="w-8 h-8 mx-auto mb-3 text-red-500"></i>
       <p class="text-red-500" id="errorMsg"></p>
       <p class="text-slate-400 text-sm mt-2">スプレッドシートが「リンクを知っている人は閲覧可能」に設定されているか確認してください。</p>
     </div>
@@ -61,7 +64,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 
           <!-- F&G カード -->
-          <div id="card-fg" class="rounded-2xl p-4 bg-neutral">
+          <div id="card-fg" class="card p-4 tint-neutral">
             <p class="text-xs text-slate-500 mb-1">Fear &amp; Greed</p>
             <p id="fg-score" class="text-4xl font-black">—</p>
             <p id="fg-label" class="text-xs mt-1 text-slate-600">—</p>
@@ -72,7 +75,7 @@
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">SKEW Index</p>
             <p id="skew-score" class="text-4xl font-black text-cyan-500">—</p>
-            <p id="skew-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="skew-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
           <!-- S&P500 カード -->
@@ -99,42 +102,42 @@
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">S&amp;P500 RCI 短期(10)</p>
             <p id="sp500-rci-s" class="text-3xl font-black text-blue-600">—</p>
-            <p id="sp500-rci-s-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="sp500-rci-s-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
           <!-- S&P500 RCI 長期 -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">S&amp;P500 RCI 長期(30)</p>
             <p id="sp500-rci-l" class="text-3xl font-black text-blue-600">—</p>
-            <p id="sp500-rci-l-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="sp500-rci-l-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
           <!-- S&P500 50日MA乖離率 -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">S&amp;P500 50日MA乖離率</p>
             <p id="sp500-ma50" class="text-3xl font-black text-blue-600">—</p>
-            <p id="sp500-ma50-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="sp500-ma50-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
           <!-- NASDAQ RCI 短期 -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">NASDAQ RCI 短期(10)</p>
             <p id="ndq-rci-s" class="text-3xl font-black text-emerald-600">—</p>
-            <p id="ndq-rci-s-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="ndq-rci-s-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
           <!-- NASDAQ RCI 長期 -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">NASDAQ RCI 長期(30)</p>
             <p id="ndq-rci-l" class="text-3xl font-black text-emerald-600">—</p>
-            <p id="ndq-rci-l-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="ndq-rci-l-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
           <!-- NASDAQ 50日MA乖離率 -->
           <div class="card p-4">
             <p class="text-xs text-slate-400 mb-1">NASDAQ 50日MA乖離率</p>
             <p id="ndq-ma50" class="text-3xl font-black text-emerald-600">—</p>
-            <p id="ndq-ma50-label" class="text-xs mt-1 text-slate-500">—</p>
+            <p id="ndq-ma50-label" class="text-xs mt-1 text-slate-500 flex items-center gap-1">—</p>
           </div>
 
         </div>
@@ -209,10 +212,13 @@
         </div>
       </section>
 
-      <!-- 極度の恐怖テーブル（直近2年・F&G ≤ 35） -->
-      <section class="card p-4" style="border-left: 4px solid #ef4444;">
-        <p class="text-sm font-semibold text-slate-700 mb-1">🔴 極度の恐怖ゾーン（F&amp;G ≤ 35）</p>
-        <p class="text-xs text-slate-400 mb-4">Fear &amp; Greedが35以下だった日の全記録</p>
+      <!-- 極度の恐怖テーブル（直近2年・F&G ≤ 30） -->
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+          <i data-lucide="circle-alert" class="w-4 h-4 text-red-500"></i>
+          <span>極度の恐怖ゾーン（F&amp;G ≤ 30）</span>
+        </p>
+        <p class="text-xs text-slate-400 mb-4">Fear &amp; Greedが30以下だった日の全記録</p>
         <div class="overflow-x-auto">
           <table class="w-full text-xs">
             <thead>
@@ -269,17 +275,21 @@
       return '#22c55e';
     }
     function fgBg(s) {
-      if (s <= 24) return 'bg-fear-extreme';
-      if (s <= 44) return 'bg-fear';
-      if (s <= 55) return 'bg-neutral';
-      if (s <= 74) return 'bg-greed';
-      return 'bg-greed-extreme';
+      if (s <= 24) return 'tint-fear-extreme';
+      if (s <= 44) return 'tint-fear';
+      if (s <= 55) return 'tint-neutral';
+      if (s <= 74) return 'tint-greed';
+      return 'tint-greed-extreme';
+    }
+    // Lucide アイコン付きラベル（HTML 文字列を返す）
+    function badge(iconName, text, colorCls) {
+      return `<i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0 ${colorCls}"></i><span>${text}</span>`;
     }
     function skewLabel(v) {
-      if (v >= 145) return '⚠️ 極めて高い';
-      if (v >= 130) return '🟡 高め';
-      if (v >= 115) return '🟢 通常範囲';
-      return '🔵 低め';
+      if (v >= 145) return badge('triangle-alert', '極めて高い', 'text-red-500');
+      if (v >= 130) return badge('circle-alert', '高め', 'text-amber-500');
+      if (v >= 115) return badge('circle-check', '通常範囲', 'text-emerald-500');
+      return badge('circle', '低め', 'text-blue-500');
     }
     function pnlClass(str) {
       if (!str || str === '—') return 'text-slate-400';
@@ -301,22 +311,27 @@
     }
     function rciLabel(v) {
       if (v === null) return '—';
-      if (v <= -80) return '⚠️ 売られすぎ（強）';
-      if (v <= -60) return '🟢 売られすぎ';
-      if (v >= 80)  return '⚠️ 買われすぎ（強）';
-      if (v >= 60)  return '🔴 買われすぎ';
-      return '🔵 通常範囲';
+      if (v <= -80) return badge('arrow-down-to-line', '売られすぎ（強）', 'text-emerald-600');
+      if (v <= -60) return badge('arrow-down', '売られすぎ', 'text-emerald-500');
+      if (v >= 80)  return badge('arrow-up-to-line', '買われすぎ（強）', 'text-red-600');
+      if (v >= 60)  return badge('arrow-up', '買われすぎ', 'text-red-500');
+      return badge('minus', '通常範囲', 'text-slate-400');
     }
     function maDevLabel(v) {
       if (v === null) return '—';
-      if (v <= -5) return '🟢 大きく下方乖離';
-      if (v <  0)  return '🔵 下方乖離';
-      if (v >  5)  return '🔴 大きく上方乖離';
-      return '⚪️ 上方乖離';
+      if (v <= -5) return badge('trending-down', '大きく下方乖離', 'text-emerald-600');
+      if (v <  0)  return badge('arrow-down-right', '下方乖離', 'text-emerald-500');
+      if (v >  5)  return badge('trending-up', '大きく上方乖離', 'text-red-500');
+      return badge('arrow-up-right', '上方乖離', 'text-slate-400');
     }
     function setText(id, text) {
       const el = document.getElementById(id);
       if (el) el.textContent = text;
+    }
+    // アイコン付きラベル用（innerHTML で差し込む）
+    function setHTML(id, html) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
     }
     // テーブルセル用フォーマッタ（RCI: 1桁小数 / MA: 符号付き2桁% ）
     function fmtRci(v) {
@@ -362,7 +377,7 @@
 
       // F&G
       const card = document.getElementById('card-fg');
-      card.className = `rounded-2xl p-4 ${fgBg(score)}`;
+      card.className = `card p-4 ${fgBg(score)}`;
       const scoreEl = document.getElementById('fg-score');
       scoreEl.textContent = Math.round(score);
       scoreEl.style.color = fgColor(score);
@@ -374,7 +389,7 @@
       // SKEW
       const skew = num(r[C.SKEW]);
       document.getElementById('skew-score').textContent = skew !== null ? skew.toFixed(1) : '—';
-      document.getElementById('skew-label').textContent = skew !== null ? skewLabel(skew) : '—';
+      setHTML('skew-label', skew !== null ? skewLabel(skew) : '—');
 
       // S&P500
       document.getElementById('sp500-price').textContent = fmt(r[C.SP500]);
@@ -391,17 +406,17 @@
       const ndMa   = pct(r[C.NDQ_MA50]);
 
       setText('sp500-rci-s', spRciS !== null ? spRciS.toFixed(1) : '—');
-      setText('sp500-rci-s-label', rciLabel(spRciS));
+      setHTML('sp500-rci-s-label', rciLabel(spRciS));
       setText('sp500-rci-l', spRciL !== null ? spRciL.toFixed(1) : '—');
-      setText('sp500-rci-l-label', rciLabel(spRciL));
+      setHTML('sp500-rci-l-label', rciLabel(spRciL));
       setText('ndq-rci-s', ndRciS !== null ? ndRciS.toFixed(1) : '—');
-      setText('ndq-rci-s-label', rciLabel(ndRciS));
+      setHTML('ndq-rci-s-label', rciLabel(ndRciS));
       setText('ndq-rci-l', ndRciL !== null ? ndRciL.toFixed(1) : '—');
-      setText('ndq-rci-l-label', rciLabel(ndRciL));
+      setHTML('ndq-rci-l-label', rciLabel(ndRciL));
       setText('sp500-ma50', spMa !== null ? `${spMa >= 0 ? '+' : ''}${spMa.toFixed(2)}%` : '—');
-      setText('sp500-ma50-label', maDevLabel(spMa));
+      setHTML('sp500-ma50-label', maDevLabel(spMa));
       setText('ndq-ma50', ndMa !== null ? `${ndMa >= 0 ? '+' : ''}${ndMa.toFixed(2)}%` : '—');
-      setText('ndq-ma50-label', maDevLabel(ndMa));
+      setHTML('ndq-ma50-label', maDevLabel(ndMa));
 
       // 最終更新
       document.getElementById('lastUpdated').textContent = `最終更新: ${r[C.DATE]}`;
@@ -717,7 +732,7 @@
     function renderFearTable(rows) {
       const fearRows = rows.filter(r => {
         const score = num(r[C.FG]);
-        return score !== null && score <= 35;
+        return score !== null && score <= 30;
       }).reverse(); // 新しい順
 
       const tbody = document.getElementById('fearTableBody');
@@ -753,7 +768,13 @@
     }
 
     // ── メイン ────────────────────────────────────────────────
+    // <i data-lucide="..."> を SVG に変換（innerHTML 差し込み後に再実行が必要）
+    function refreshIcons() {
+      if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+    }
+
     async function main() {
+      refreshIcons(); // ヘッダー・ローディング用
       try {
         const rows = await loadData();
         if (rows.length === 0) throw new Error('データがまだありません');
@@ -772,6 +793,8 @@
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('error').classList.remove('hidden');
         document.getElementById('errorMsg').textContent = e.message;
+      } finally {
+        refreshIcons(); // ラベル・エラー表示に差し込んだアイコンを変換
       }
     }
     // ── Apple Touch Icon（iOS ホーム画面アイコン）────────────
