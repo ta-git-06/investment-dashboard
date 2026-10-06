@@ -143,6 +143,32 @@
         </div>
       </section>
 
+      <!-- セクター別 ETF -->
+      <section class="card p-4">
+        <p class="text-sm font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
+          <i data-lucide="layout-grid" class="w-4 h-4 text-slate-400"></i>
+          <span>セクター別 ETF</span>
+        </p>
+        <p class="text-xs text-slate-400 mb-4">
+          Vanguard セクター ETF 11 本。1週間比の弱い順。上段の S&amp;P500 / NASDAQ は比較の基準
+        </p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead class="text-slate-400 border-b border-slate-200">
+              <tr>
+                <th class="pb-2 pr-3 font-medium text-left whitespace-nowrap">セクター</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">終値</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">前日比</th>
+                <th class="pb-2 pr-3 font-medium text-right whitespace-nowrap">1週間比</th>
+                <th class="pb-2 font-medium text-right whitespace-nowrap">1ヶ月比</th>
+              </tr>
+            </thead>
+            <tbody id="sectorTableBody" class="text-slate-600"></tbody>
+          </table>
+          <p id="sectorTableEmpty" class="hidden text-center text-slate-400 py-6 text-xs">セクターデータはまだありません</p>
+        </div>
+      </section>
+
       <!-- F&G 推移グラフ -->
       <section class="card p-4">
         <p class="text-sm font-semibold text-slate-700 mb-4">Fear &amp; Greed Index 推移</p>
@@ -264,6 +290,19 @@
       SP500_RCI_S: 13, SP500_RCI_L: 14,
       NDQ_RCI_S: 15,   NDQ_RCI_L: 16,
       SP500_MA50: 17,  NDQ_MA50: 18,
+      SECTOR_START: 19,  // T列（0始まり）〜 AD列(29)
+    };
+
+    // セクター別 ETF。並びは fetcher.SECTOR_ETFS / スプシの T〜AD 列順と一致させる。
+    // col は 0 始まりの列インデックス（T=19）。
+    const SECTORS = [
+      'VGT', 'VHT', 'VFH', 'VCR', 'VDC', 'VIS', 'VDE', 'VAW', 'VNQ', 'VPU', 'VOX',
+    ].map((ticker, i) => ({ ticker, col: C.SECTOR_START + i }));
+
+    const SECTOR_NAMES = {
+      VGT: '情報技術', VHT: 'ヘルスケア', VFH: '金融',   VCR: '一般消費財',
+      VDC: '生活必需品', VIS: '資本財',   VDE: 'エネルギー', VAW: '素材',
+      VNQ: '不動産',   VPU: '公益事業',  VOX: '通信サービス',
     };
 
     // ── ユーティリティ ────────────────────────────────────────
@@ -767,6 +806,132 @@
       }).join('');
     }
 
+    // ── セクター別 ETF テーブル ───────────────────────────────
+    // 行の日付（A列 "YYYY-MM-DD HH:MM:SS"）を Date に。
+    function rowDate(r) {
+      const d = new Date(String(r[C.DATE]).split(' ')[0] + 'T00:00:00');
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // 暦日ベースの差（a - b を日数で）
+    function dayDiff(a, b) {
+      return Math.floor((a - b) / 86400000);
+    }
+
+    // 基準行を探す。rows は A列昇順ソート済み。
+    // minDays 日以上前の「最新の行」から始めて、その列が空なら最大 FALLBACK_LIMIT 行だけ
+    // 古い方へ遡る（セクター列が欠けた行を引いて "—" になるのを防ぐ）。
+    const FALLBACK_LIMIT = 3;
+    function findBaseValue(rows, lastDate, minDays, col) {
+      // 条件を満たす最後のインデックス（昇順なので後ろから探す）
+      let idx = -1;
+      for (let i = rows.length - 1; i >= 0; i--) {
+        const d = rowDate(rows[i]);
+        if (d && dayDiff(lastDate, d) >= minDays) { idx = i; break; }
+      }
+      if (idx < 0) return null;
+      for (let back = 0; back <= FALLBACK_LIMIT && idx - back >= 0; back++) {
+        const v = num(rows[idx - back][col]);
+        if (v !== null && v !== 0) return v;
+      }
+      return null;
+    }
+
+    // 1 行前を基準にした前日比（空なら最大 FALLBACK_LIMIT 行遡る）
+    function findPrevValue(rows, col) {
+      for (let back = 1; back <= FALLBACK_LIMIT + 1; back++) {
+        const i = rows.length - 1 - back;
+        if (i < 0) return null;
+        const v = num(rows[i][col]);
+        if (v !== null && v !== 0) return v;
+      }
+      return null;
+    }
+
+    // 変化率（%）。どちらか欠けていれば null
+    function pctChange(cur, base) {
+      if (cur === null || base === null || base === 0) return null;
+      return (cur - base) / base * 100;
+    }
+
+    // 変化率セル（色付き）。null は "—"
+    function changeCell(p, extraCls = '') {
+      if (p === null) {
+        return `<td class="py-2 pr-3 text-right whitespace-nowrap text-slate-400 ${extraCls}">—</td>`;
+      }
+      const cls = p < 0 ? 'text-red-500' : 'text-emerald-600';
+      const sign = p >= 0 ? '+' : '';
+      return `<td class="py-2 pr-3 text-right whitespace-nowrap ${cls} ${extraCls}">${sign}${p.toFixed(2)}%</td>`;
+    }
+
+    // 1 銘柄分の指標をまとめて算出
+    function buildSectorMetrics(rows, lastDate, label, col) {
+      const last = rows.at(-1);
+      const cur = num(last[col]);
+      return {
+        label,
+        close: cur,
+        d1: pctChange(cur, findPrevValue(rows, col)),
+        d7: pctChange(cur, findBaseValue(rows, lastDate, 7, col)),
+        d30: pctChange(cur, findBaseValue(rows, lastDate, 30, col)),
+      };
+    }
+
+    function renderSectorTable(rows) {
+      const tbody = document.getElementById('sectorTableBody');
+      const empty = document.getElementById('sectorTableEmpty');
+      const lastDate = rowDate(rows.at(-1));
+
+      if (!lastDate) {
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      // 基準（S&P500 / NASDAQ）は先頭に固定、ソート対象外
+      const bench = [
+        buildSectorMetrics(rows, lastDate, 'S&P500', C.SP500),
+        buildSectorMetrics(rows, lastDate, 'NASDAQ', C.NASDAQ),
+      ];
+
+      // 11 セクターを 1週間比の昇順（弱い順）。データ不足は末尾へ
+      const sectors = SECTORS
+        .map(s => buildSectorMetrics(rows, lastDate, `${SECTOR_NAMES[s.ticker]}（${s.ticker}）`, s.col))
+        .sort((a, b) => {
+          if (a.d7 === null && b.d7 === null) return 0;
+          if (a.d7 === null) return 1;
+          if (b.d7 === null) return -1;
+          return a.d7 - b.d7;
+        });
+
+      if (sectors.every(s => s.close === null)) {
+        empty.classList.remove('hidden');
+      } else {
+        empty.classList.add('hidden');
+      }
+
+      const row = (m, isBench) => {
+        const rowCls = isBench
+          ? 'bg-slate-50 font-semibold text-slate-700'
+          : 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+        const edge = isBench ? 'border-b-2 border-slate-200' : '';
+        return `<tr class="${rowCls}">
+          <td class="py-2 pr-3 text-left whitespace-nowrap ${edge}">${m.label}</td>
+          <td class="py-2 pr-3 text-right whitespace-nowrap ${edge}">${
+            m.close !== null ? m.close.toLocaleString('ja-JP', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—'
+          }</td>
+          ${changeCell(m.d1, edge)}
+          ${changeCell(m.d7, edge)}
+          ${changeCell(m.d30, edge).replace('pr-3', '')}
+        </tr>`;
+      };
+
+      // 基準行は 2 行目だけ下に太線を引いてセクター群と区切る
+      tbody.innerHTML =
+        row(bench[0], true).replace(' border-b-2 border-slate-200', '') +
+        row(bench[1], true) +
+        sectors.map(m => row(m, false)).join('');
+    }
+
     // ── メイン ────────────────────────────────────────────────
     // <i data-lucide="..."> を SVG に変換（innerHTML 差し込み後に再実行が必要）
     function refreshIcons() {
@@ -787,6 +952,7 @@
         renderRciChart('rciSp500Chart', rows, C.SP500_RCI_S, C.SP500_RCI_L, '#2563eb', '#1e40af', 'S&P500');
         renderRciChart('rciNasdaqChart', rows, C.NDQ_RCI_S, C.NDQ_RCI_L, '#059669', '#065f46', 'NASDAQ');
         renderMa50Chart(rows);
+        renderSectorTable(rows);
         renderTable(rows);
         renderFearTable(rows);
       } catch (e) {
